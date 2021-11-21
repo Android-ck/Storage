@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="adapter"
+            type="com.zerir.storage.presentation.PhotoAdapter" />
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/gallery_bt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="32dp"
+                android:backgroundTint="@color/teal_200"
+                android:contentDescription="@null"
+                android:padding="18dp"
+                android:src="@drawable/ic_gallery"
+                app:layout_constraintEnd_toStartOf="@+id/camera_bt"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/camera_bt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="32dp"
+                android:backgroundTint="@color/teal_200"
+                android:contentDescription="@null"
+                android:padding="18dp"
+                android:src="@drawable/ic_camera"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/gallery_bt"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/white" />
+
+            <Switch
+                android:id="@+id/private_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layoutDirection="rtl"
+                android:switchPadding="8dp"
+                android:text="@string/in_private"
+                android:textColor="@color/teal_200"
+                app:layout_constraintEnd_toEndOf="@+id/gallery_bt"
+                app:layout_constraintStart_toStartOf="@+id/gallery_bt"
+                app:layout_constraintTop_toBottomOf="@+id/gallery_bt"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/photo_rv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="never"
+                app:adapter="@{adapter}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/private_switch"
+                app:spanCount="4"
+                tools:itemCount="3"
+                tools:listitem="@layout/row_title_item" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+</layout>

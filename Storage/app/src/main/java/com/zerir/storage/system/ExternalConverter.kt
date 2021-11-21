@@ -1,9 +1,7 @@
 package com.zerir.storage.system
 
 import android.content.ContentUris
-import android.content.Context
 import android.database.Cursor
-import android.graphics.BitmapFactory
 import android.provider.MediaStore
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
@@ -17,16 +15,11 @@ class ExternalConverter {
         displayNameColumn: Int,
         widthColumn: Int,
         heightColumn: Int,
-        context: Context,
-    ): ExternalStoragePhoto? {
+    ): StoragePhoto.ExternalStoragePhoto? {
         return withContext(Dispatchers.IO) {
-            val result = runCatching<ExternalStoragePhoto> {
+            val result = runCatching<StoragePhoto.ExternalStoragePhoto> {
                 val id = cursor.getLong(idColumn)
-                val uri = ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    id
-                )
-                ExternalStoragePhoto(
+                StoragePhoto.ExternalStoragePhoto(
                     id = id,
                     name = cursor.getString(displayNameColumn),
                     width = cursor.getInt(widthColumn),

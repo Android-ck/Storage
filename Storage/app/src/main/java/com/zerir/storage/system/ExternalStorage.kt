@@ -1,8 +1,8 @@
 package com.zerir.storage.system
 
 import android.app.RecoverableSecurityException
+import android.content.ContentResolver
 import android.content.ContentValues
-import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-class ExternalStorage(private val context: Context) {
+class ExternalStorage(private val contentResolver: ContentResolver) {
 
     suspend fun delete(
         uri: Uri,
@@ -20,13 +20,13 @@ class ExternalStorage(private val context: Context) {
     ): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                context.contentResolver.delete(uri, null, null)
+                contentResolver.delete(uri, null, null)
                 true
             } catch (e: SecurityException) {
                 val intentSender = when {
                     isSdk30OrOver() -> {
                         MediaStore.createDeleteRequest(
-                            context.contentResolver,
+                            contentResolver,
                             listOf(uri)
                         ).intentSender
                     }
@@ -50,7 +50,7 @@ class ExternalStorage(private val context: Context) {
         }
     }
 
-    suspend fun save(displayName: String, bitmap: Bitmap): Boolean {
+    suspend fun save(displayName: String, bitmap: Bitmap?): Boolean {
         return withContext(Dispatchers.IO) {
             val imageCollection = if(isSdk29OrOver()) {
                 MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
@@ -59,13 +59,14 @@ class ExternalStorage(private val context: Context) {
             val contentValues = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, "$displayName.jpg")
                 put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(MediaStore.Images.Media.WIDTH, bitmap.width)
-                put(MediaStore.Images.Media.HEIGHT, bitmap.height)
+                put(MediaStore.Images.Media.WIDTH, bitmap?.width)
+                put(MediaStore.Images.Media.HEIGHT, bitmap?.height)
             }
             val result = runCatching {
-                context.contentResolver.insert(imageCollection, contentValues)?.also { uri ->
-                    context.contentResolver.openOutputStream(uri).use { outputStream ->
-                        if(!bitmap.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)) {
+                contentResolver.insert(imageCollection, contentValues)?.also { uri ->
+                    contentResolver.openOutputStream(uri).use { outputStream ->
+                        val compressed = bitmap?.compress(Bitmap.CompressFormat.JPEG, 95, outputStream)
+                        if(compressed == null || !compressed) {
                             throw IOException("Couldn't save bitmap")
                         }
                     }
@@ -76,7 +77,7 @@ class ExternalStorage(private val context: Context) {
         }
     }
 
-    suspend fun loadAll(converter: ExternalConverter): List<ExternalStoragePhoto> {
+    suspend fun loadAll(converter: ExternalConverter): List<StoragePhoto.ExternalStoragePhoto> {
         return withContext(Dispatchers.IO) {
             val collection = if (isSdk29OrOver()) {
                 MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
@@ -90,9 +91,9 @@ class ExternalStorage(private val context: Context) {
                 MediaStore.Images.Media.HEIGHT,
             )
 
-            val photos = mutableListOf<ExternalStoragePhoto>()
+            val photos = mutableListOf<StoragePhoto.ExternalStoragePhoto>()
 
-            context.contentResolver.query(
+            contentResolver.query(
                 collection,
                 projection,
                 null,
@@ -111,7 +112,6 @@ class ExternalStorage(private val context: Context) {
                         displayNameColumn = displayNameColumn,
                         widthColumn = widthColumn,
                         heightColumn = heightColumn,
-                        context
                     )
                     photo?.let { photos.add(it) }
                 }
