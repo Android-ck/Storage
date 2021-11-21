@@ -45,8 +45,9 @@ class InternalStorage(context: Context) {
         if (uri == null) return false
         return withContext(Dispatchers.IO) {
             val result = runCatching {
-                val input = context.contentResolver.openInputStream(uri)
-                val bitmap = BitmapFactory.decodeStream(input)
+                val bitmap = context.contentResolver.openInputStream(uri).use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
                 context.openFileOutput("$filename.jpg", ComponentActivity.MODE_PRIVATE)
                     .use { stream ->
                         val compressed = bitmap?.compress(Bitmap.CompressFormat.JPEG, 95, stream)
